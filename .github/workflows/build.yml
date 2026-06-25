@@ -1,5 +1,8 @@
 name: 构建打包 (Build)
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
