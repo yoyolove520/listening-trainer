@@ -7,6 +7,9 @@ __pycache__/
 dist/
 build/
 *.spec
+# Do NOT ignore build_*.spec - used by GitHub Actions
+!build_mac.spec
+!build.spec
 
 # PyInstaller build artifacts
 dist_v34/
