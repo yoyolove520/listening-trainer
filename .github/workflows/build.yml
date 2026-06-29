@@ -45,9 +45,8 @@ jobs:
       - run: python -m PyInstaller --noconfirm build_mac.spec
       - name: Create DMG
         run: |
-          brew install create-dmg
-          create-dmg --overwrite "dist/ListeningTrainer-mac.dmg" "dist/ListeningTrainer.app"
-          ls -la dist/ListeningTrainer-mac.dmg
+          hdiutil create -volname "听力练习助手" -srcfolder "dist/ListeningTrainer.app" -ov -format UDZO "dist/ListeningTrainer-mac.dmg"
+          ls -la "dist/ListeningTrainer-mac.dmg"
       - uses: actions/upload-artifact@v4
         with:
           name: ListeningTrainer-mac
