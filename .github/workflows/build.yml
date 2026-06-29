@@ -46,8 +46,8 @@ jobs:
       - name: Create DMG
         run: |
           brew install create-dmg
-          create-dmg dist/ListeningTrainer.app dist/ --overwrite
-          mv dist/*.dmg dist/ListeningTrainer-mac.dmg
+          create-dmg --overwrite "dist/ListeningTrainer-mac.dmg" "dist/ListeningTrainer.app"
+          ls -la dist/ListeningTrainer-mac.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: ListeningTrainer-mac
@@ -67,9 +67,13 @@ jobs:
       - name: Install Inno Setup and compile installer
         env:
           APP_VERSION: ${{ github.ref_name }}
+        shell: pwsh
         run: |
           choco install innosetup -y --no-progress
-          $iscc = (Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe" | Select-Object -First 1).FullName
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            $iscc = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe" | Select-Object -First 1 -ExpandProperty FullName
+          }
           Write-Host "ISCC: $iscc"
           & $iscc installer_script.iss
       - run: |
