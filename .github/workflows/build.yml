@@ -66,7 +66,6 @@ jobs:
       - name: Install Inno Setup and compile installer
         env:
           APP_VERSION: ${{ github.ref_name }}
-        shell: pwsh
         run: |
           choco install innosetup -y --no-progress
           $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
@@ -75,10 +74,15 @@ jobs:
           }
           Write-Host "ISCC: $iscc"
           & $iscc installer_script.iss
-      - run: |
+          if (-not (Test-Path "ListeningTrainer_Setup_*.exe")) {
+            Write-Error "Inno Setup output .exe not found"
+            exit 1
+          }
+      - name: Move installer to dist/
+        run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Move-Item -Path "ListeningTrainer_Setup_*.exe" -Destination "dist/" -Force
-          Get-ChildItem dist/ListeningTrainer_Setup_*.exe
+          Get-ChildItem dist\ListeningTrainer_Setup_*.exe
       - uses: actions/upload-artifact@v4
         with:
           name: ListeningTrainer-win
