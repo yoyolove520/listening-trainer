@@ -76,8 +76,8 @@ jobs:
           Write-Host "ISCC: $iscc"
           & $iscc installer_script.iss
       - run: |
-          mkdir -p dist
-          mv ListeningTrainer_Setup_*.exe dist/
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Move-Item -Path "ListeningTrainer_Setup_*.exe" -Destination "dist/" -Force
           Get-ChildItem dist/ListeningTrainer_Setup_*.exe
       - uses: actions/upload-artifact@v4
         with:
