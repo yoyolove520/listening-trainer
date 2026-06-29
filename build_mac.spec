@@ -5,6 +5,7 @@ One-folder bundle inside .app for fast startup.
 """
 import os
 import sys
+from PyInstaller.utils.hooks import collect_data_files
 
 block_cipher = None
 app_dir = os.getcwd()
@@ -26,7 +27,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('listening_app.db', '.'),
-    ],
+    ] + collect_data_files('certifi') + collect_data_files('ssl'),
     hiddenimports=[
         # PySide6
         'PySide6.QtWidgets',
@@ -40,6 +41,9 @@ a = Analysis(
         'aiohttp._websocket',
         'aiohttp._websocket.reader_c',
         'aiohttp._websocket.mask',
+        # SSL cert bundle (required on Mac/Linux)
+        'certifi',
+        'certifi.core',
         # App modules
         'app',
         'app.theme',

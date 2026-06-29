@@ -4,9 +4,17 @@ No hardcoded fallback data — API errors propagate cleanly.
 """
 import json
 import re
+import ssl
 from typing import List, Optional, Dict
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
+
+# Use certifi CA bundle for SSL verification on Windows
+try:
+    import certifi
+    _SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    _SSL_CONTEXT = None
 
 from app.services.models import GenerateRequest, Exercise, GenerationResult
 from app.services import database as db
@@ -144,7 +152,10 @@ def _call_deepseek(messages: List[Dict], temperature: float = 0.7,
                   })
 
     try:
-        with urlopen(req, timeout=60) as resp:
+        kwargs = {"timeout": 60}
+        if _SSL_CONTEXT is not None:
+            kwargs["context"] = _SSL_CONTEXT
+        with urlopen(req, **kwargs) as resp:  # type: ignore[arg-type]
             data = json.loads(resp.read().decode("utf-8"))
             return data["choices"][0]["message"]["content"]
     except HTTPError as e:

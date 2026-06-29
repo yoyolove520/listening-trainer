@@ -1,8 +1,12 @@
 ; ListeningTrainer 安装脚本
-; 使用方式: 安装 Inno Setup 后，右键此文件 → Compile
+; 本地: 右键 → Compile
+; CI: ISCC.exe installer_script.iss
 
 #define MyAppName "ListeningTrainer"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion GetEnv("APP_VERSION")
+#if MyAppVersion == ""
+  #define MyAppVersion "1.0.0"
+#endif
 #define MyAppPublisher "ListeningTrainer"
 #define MyAppURL ""
 #define MyAppExeName "ListeningTrainer.exe"
@@ -16,12 +20,13 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=.
-OutputBaseFilename=ListeningTrainer_Setup_v34
+OutputBaseFilename=ListeningTrainer_Setup_v{#MyAppVersion}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\{#MyAppExeName}
 PrivilegesRequired=lowest
+DisableProgramGroupPage=yes
 
 [Languages]
 Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
@@ -32,7 +37,6 @@ Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: 
 
 [Files]
 Source: "dist\ListeningTrainer\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "dist\ListeningTrainer\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -41,5 +45,3 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: 
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "运行 ListeningTrainer"; Flags: nowait postinstall skipifsilent
-
-[UninstallRun]

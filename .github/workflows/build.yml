@@ -43,11 +43,15 @@ jobs:
           mv AppIcon.icns app_icon.icns
           rm -rf AppIcon.iconset
       - run: python -m PyInstaller --noconfirm build_mac.spec
-      - run: cd dist && zip -r ListeningTrainer-mac.zip ListeningTrainer.app
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg dist/ListeningTrainer.app dist/ --overwrite
+          mv dist/*.dmg dist/ListeningTrainer-mac.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: ListeningTrainer-mac
-          path: dist/ListeningTrainer-mac.zip
+          path: dist/ListeningTrainer-mac.dmg
 
   build-win:
     runs-on: windows-latest
@@ -58,13 +62,24 @@ jobs:
           python-version: '3.11'
       - run: |
           python -m pip install --upgrade pip
-          pip install PySide6 edge-tts aiohttp pyinstaller
+          pip install -r requirements.txt
       - run: python -m PyInstaller --noconfirm build.spec
-      - run: cd dist && Compress-Archive -Path ListeningTrainer -DestinationPath ListeningTrainer-win.zip
+      - name: Install Inno Setup and compile installer
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        run: |
+          choco install innosetup -y --no-progress
+          $iscc = (Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup*\ISCC.exe" | Select-Object -First 1).FullName
+          Write-Host "ISCC: $iscc"
+          & $iscc installer_script.iss
+      - run: |
+          mkdir -p dist
+          mv ListeningTrainer_Setup_*.exe dist/
+          Get-ChildItem dist/ListeningTrainer_Setup_*.exe
       - uses: actions/upload-artifact@v4
         with:
           name: ListeningTrainer-win
-          path: dist/ListeningTrainer-win.zip
+          path: dist/ListeningTrainer_Setup_*.exe
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
@@ -86,12 +101,12 @@ jobs:
             ## 听力练习助手 ${{ github.ref_name }}
 
             ### 📦 下载
-            - 🍎 [macOS 版本](ListeningTrainer-mac.zip)
-            - 🪟 [Windows 版本](ListeningTrainer-win.zip)
+            - 🍎 [macOS 安装包](ListeningTrainer-mac.dmg)
+            - 🪟 [Windows 安装包](ListeningTrainer_Setup_${{ github.ref_name }}.exe)
 
             ### ✨ 使用说明
-            - **macOS**: 解压后把 `.app` 拖到「应用程序」文件夹
-            - **Windows**: 解压后运行 `ListeningTrainer.exe`
+            - **macOS**: 打开 .dmg，把 App 拖到「应用程序」文件夹
+            - **Windows**: 运行安装程序，按向导完成安装，自动创建桌面快捷方式
           files: |
-            ListeningTrainer-mac.zip
-            ListeningTrainer-win.zip
+            ListeningTrainer-mac.dmg
+            ListeningTrainer_Setup_*.exe
